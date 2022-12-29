@@ -27,26 +27,19 @@ type QueryHistory struct {
 	Record string
 }
 
-// Customer Information Structure
 type InfoBlock struct {
 	OrderDate   string `json:"orderDate"`
 	Phonenumber uint64 `json:"phonenumber"`
 }
-
-// Material Requirement Structure
 type RequirementBlock struct {
 	Key   string `json:"Key"`
 	Value string `json:"Value"`
 }
-
-// Ordered Material Structure
 type MaterialDataBlock struct {
-	Key   string `json:"key"`
-	Value string `json:"Value"`
+	Key   string   `json:"key"`
+	Value string   `json:"Value"`
 	Date  string `json:"Date"`
 }
-
-// Processing Structure
 type ProcessingBlock struct {
 	Cutting       string `json:"Cutting"`
 	Packing       string `json:"Packing"`
@@ -88,7 +81,7 @@ type Order struct {
 	Productcodes        []string            `json:"productcodes"`
 }
 
-// InitLedger adds a base set of Orders to the ledger
+// InitLedger adds a base set of invoices to the ledger
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 
 	Orders := []Order{}
@@ -158,10 +151,10 @@ func (s *SmartContract) CreateOrder(ctx contractapi.TransactionContextInterface,
 	return ctx.GetStub().PutState(orderId, orderAsBytes)
 }
 
-// ProcessOrder Update order to the world state with given details
+// UpdateOrder in world state
 func (s *SmartContract) ProcessOrder(ctx contractapi.TransactionContextInterface,
 	OrderID string, Cutting string, Packing string,
-	Quality string, Stiching string, inProductionDate string, ProductionDate string) error {
+	Quality string, Stiching string, inProductionDate string,ProductionDate string) error {
 
 	order, err := s.QueryOrder(ctx, OrderID)
 
@@ -172,7 +165,7 @@ func (s *SmartContract) ProcessOrder(ctx contractapi.TransactionContextInterface
 	order.Stiching = Stiching
 	order.Quality = Quality
 	order.Packing = Packing
-	order.StartProductionDate = ProductionDate
+	order.StartProductionDate=ProductionDate
 	order.InProductionDate = inProductionDate
 	order.Processing.Cutting = "Pending"
 
@@ -181,9 +174,9 @@ func (s *SmartContract) ProcessOrder(ctx contractapi.TransactionContextInterface
 	return ctx.GetStub().PutState(OrderID, orderAsBytes)
 }
 
-// CuttingOrder Update order to the world state with given details
+// UpdateOrder in world state
 func (s *SmartContract) CuttingOrder(ctx contractapi.TransactionContextInterface,
-	OrderID string, CuttingDate string) error {
+	OrderID string,  CuttingDate string, ) error {
 
 	order, err := s.QueryOrder(ctx, OrderID)
 
@@ -200,9 +193,9 @@ func (s *SmartContract) CuttingOrder(ctx contractapi.TransactionContextInterface
 	return ctx.GetStub().PutState(OrderID, orderAsBytes)
 }
 
-// StichingOrder Update order to the world state with given details
+// UpdateOrder in world state
 func (s *SmartContract) StichingOrder(ctx contractapi.TransactionContextInterface,
-	OrderID string, StichingDate string) error {
+	OrderID string,StichingDate string) error {
 
 	order, err := s.QueryOrder(ctx, OrderID)
 
@@ -219,7 +212,7 @@ func (s *SmartContract) StichingOrder(ctx contractapi.TransactionContextInterfac
 	return ctx.GetStub().PutState(OrderID, orderAsBytes)
 }
 
-// QualityOrder Update order to the world state with given details
+// UpdateOrder in world state
 func (s *SmartContract) QualityOrder(ctx contractapi.TransactionContextInterface,
 	OrderID string, QualityDate string) error {
 
@@ -238,9 +231,9 @@ func (s *SmartContract) QualityOrder(ctx contractapi.TransactionContextInterface
 	return ctx.GetStub().PutState(OrderID, orderAsBytes)
 }
 
-// PackingOrder Update order to the world state with given details
+// UpdateOrder in world state
 func (s *SmartContract) PackingOrder(ctx contractapi.TransactionContextInterface,
-	OrderID string, PackingDate string, delivered bool, deliveredDate string) error {
+	OrderID string, PackingDate string, delivered bool,deliveredDate string) error {
 
 	order, err := s.QueryOrder(ctx, OrderID)
 
@@ -251,14 +244,13 @@ func (s *SmartContract) PackingOrder(ctx contractapi.TransactionContextInterface
 	order.Processing.Packing = "Completed"
 	order.Processing.PackingDate = PackingDate
 	order.Processing.Delivered = delivered
-	order.Processing.DeliveredDate = deliveredDate
+	order.Processing.DeliveredDate=deliveredDate
 
 	orderAsBytes, _ := json.Marshal(order)
 
 	return ctx.GetStub().PutState(OrderID, orderAsBytes)
 }
-
-// OrderMaterialData Update order to the world state with given details
+// UpdateOrder in world state
 func (s *SmartContract) OrderMaterialData(ctx contractapi.TransactionContextInterface,
 	OrderID string, MaterialData []MaterialDataBlock) error {
 
@@ -268,7 +260,7 @@ func (s *SmartContract) OrderMaterialData(ctx contractapi.TransactionContextInte
 		return err
 	}
 
-	order.OrderedMaterialData = MaterialData
+	order.OrderedMaterialData=MaterialData
 
 	orderAsBytes, _ := json.Marshal(order)
 
@@ -356,7 +348,26 @@ func (s *SmartContract) QueryOrder(ctx contractapi.TransactionContextInterface, 
 	return order, nil
 }
 
-// GetHistoryOrder returns the order stored in the world state with given id
+// QueryOrder returns the order stored in the world state with given id
+func (s *SmartContract) GetOrder(ctx contractapi.TransactionContextInterface, orderId string) (*Order, error) {
+
+	orderAsBytes, err := ctx.GetStub().GetState(orderId)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to read from world state. %s", err.Error())
+	}
+
+	if orderAsBytes == nil {
+		return nil, fmt.Errorf("%s does not exist", orderId)
+	}
+
+	order := Order{}
+	_ = json.Unmarshal(orderAsBytes, &order)
+
+	return &order, nil
+}
+
+//GetHistoryOrder returns the order stored in the world state with given id
 func (s *SmartContract) GetHistoryOrder(ctx contractapi.TransactionContextInterface, orderId string) ([]QueryHistory, error) {
 
 	history, err := ctx.GetStub().GetHistoryForKey(orderId)
