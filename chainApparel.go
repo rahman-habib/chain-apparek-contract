@@ -124,6 +124,7 @@ func (s *SmartContract) CreateOrder(ctx contractapi.TransactionContextInterface,
 	userName string,
 	Accept bool,
 	Materialrequirement []RequirementBlock,
+	ProductionDate string,
 ) error {
 
 	order := Order{
@@ -145,7 +146,7 @@ func (s *SmartContract) CreateOrder(ctx contractapi.TransactionContextInterface,
 		ProductUrl:          productUrl,
 		Productcodes:        productcodes,
 		CutomerInfo:         InfoBlock{orderDate, phonenumber},
-		StartProductionDate: "",
+		StartProductionDate: ProductionDate,
 		UserName:            userName,
 		MaterialRequirement: Materialrequirement,
 		OrderedMaterialData: []MaterialDataBlock{},
@@ -161,7 +162,7 @@ func (s *SmartContract) CreateOrder(ctx contractapi.TransactionContextInterface,
 // ProcessOrder Update order to the world state with given details
 func (s *SmartContract) ProcessOrder(ctx contractapi.TransactionContextInterface,
 	OrderID string, Cutting string, Packing string,
-	Quality string, Stiching string, inProductionDate string, ProductionDate string) error {
+	Quality string, Stiching string, inProductionDate string) error {
 
 	order, err := s.QueryOrder(ctx, OrderID)
 
@@ -172,7 +173,6 @@ func (s *SmartContract) ProcessOrder(ctx contractapi.TransactionContextInterface
 	order.Stiching = Stiching
 	order.Quality = Quality
 	order.Packing = Packing
-	order.StartProductionDate = ProductionDate
 	order.InProductionDate = inProductionDate
 	order.Processing.Cutting = "Pending"
 
@@ -240,7 +240,7 @@ func (s *SmartContract) QualityOrder(ctx contractapi.TransactionContextInterface
 
 // PackingOrder Update order to the world state with given details
 func (s *SmartContract) PackingOrder(ctx contractapi.TransactionContextInterface,
-	OrderID string, PackingDate string, delivered bool, deliveredDate string) error {
+	OrderID string, PackingDate string, deliveredDate string) error {
 
 	order, err := s.QueryOrder(ctx, OrderID)
 
@@ -250,7 +250,7 @@ func (s *SmartContract) PackingOrder(ctx contractapi.TransactionContextInterface
 
 	order.Processing.Packing = "Completed"
 	order.Processing.PackingDate = PackingDate
-	order.Processing.Delivered = delivered
+	order.Processing.Delivered = true
 	order.Processing.DeliveredDate = deliveredDate
 
 	orderAsBytes, _ := json.Marshal(order)
