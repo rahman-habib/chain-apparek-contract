@@ -48,16 +48,23 @@ type MaterialDataBlock struct {
 
 // Processing Structure
 type ProcessingBlock struct {
-	Cutting       string `json:"Cutting"`
-	Packing       string `json:"Packing"`
-	Quality       string `json:"Quality"`
-	Stiching      string `json:"Stiching"`
-	CuttingDate   string `json:"cuttingDate"`
-	Delivered     bool   `json:"delivered"`
-	DeliveredDate string `json:"deliveredDate"`
-	PackingDate   string `json:"packingDate"`
-	QualityDate   string `json:"qualityDate"`
-	StichingDate  string `json:"stichingDate"`
+	Cutting       string       `json:"Cutting"`
+	Packing       string       `json:"Packing"`
+	Quality       string       `json:"Quality"`
+	Stiching      string       `json:"Stiching"`
+	CuttingTrack  []TrackBlock `json:"cuttingTrack"`
+	Delivered     bool         `json:"delivered"`
+	DeliveredDate string       `json:"deliveredDate"`
+	PackingTrack  []TrackBlock `json:"packingTrack"`
+	QualityTrack  []TrackBlock `json:"qualityTrack"`
+	StichingTrack []TrackBlock `json:"stichingTrack"`
+}
+
+type TrackBlock struct {
+	GarmentId   string `json:"GarmentId"`
+	WorkerId    string `json:"WorkerId"`
+	DateTime    string `json:"DateTime"`
+	ProcessName string `json:"ProcessName"`
 }
 
 // Order Structure
@@ -183,7 +190,7 @@ func (s *SmartContract) ProcessOrder(ctx contractapi.TransactionContextInterface
 
 // CuttingOrder Update order to the world state with given details
 func (s *SmartContract) CuttingOrder(ctx contractapi.TransactionContextInterface,
-	OrderID string, CuttingDate string) error {
+	OrderID string, CuttingTrack []TrackBlock) error {
 
 	order, err := s.QueryOrder(ctx, OrderID)
 
@@ -192,7 +199,7 @@ func (s *SmartContract) CuttingOrder(ctx contractapi.TransactionContextInterface
 	}
 
 	order.Processing.Cutting = "Completed"
-	order.Processing.CuttingDate = CuttingDate
+	order.Processing.CuttingTrack = CuttingTrack
 	order.Processing.Stiching = "Pending"
 
 	orderAsBytes, _ := json.Marshal(order)
@@ -202,7 +209,7 @@ func (s *SmartContract) CuttingOrder(ctx contractapi.TransactionContextInterface
 
 // StichingOrder Update order to the world state with given details
 func (s *SmartContract) StichingOrder(ctx contractapi.TransactionContextInterface,
-	OrderID string, StichingDate string) error {
+	OrderID string, StichingTrack []TrackBlock) error {
 
 	order, err := s.QueryOrder(ctx, OrderID)
 
@@ -211,7 +218,7 @@ func (s *SmartContract) StichingOrder(ctx contractapi.TransactionContextInterfac
 	}
 
 	order.Processing.Stiching = "Completed"
-	order.Processing.StichingDate = StichingDate
+	order.Processing.StichingTrack = StichingTrack
 	order.Processing.Quality = "Pending"
 
 	orderAsBytes, _ := json.Marshal(order)
@@ -221,7 +228,7 @@ func (s *SmartContract) StichingOrder(ctx contractapi.TransactionContextInterfac
 
 // QualityOrder Update order to the world state with given details
 func (s *SmartContract) QualityOrder(ctx contractapi.TransactionContextInterface,
-	OrderID string, QualityDate string) error {
+	OrderID string, QualityTrack []TrackBlock) error {
 
 	order, err := s.QueryOrder(ctx, OrderID)
 
@@ -230,7 +237,7 @@ func (s *SmartContract) QualityOrder(ctx contractapi.TransactionContextInterface
 	}
 
 	order.Processing.Quality = "Completed"
-	order.Processing.QualityDate = QualityDate
+	order.Processing.QualityTrack = QualityTrack
 	order.Processing.Packing = "Pending"
 
 	orderAsBytes, _ := json.Marshal(order)
@@ -240,7 +247,7 @@ func (s *SmartContract) QualityOrder(ctx contractapi.TransactionContextInterface
 
 // PackingOrder Update order to the world state with given details
 func (s *SmartContract) PackingOrder(ctx contractapi.TransactionContextInterface,
-	OrderID string, PackingDate string, deliveredDate string) error {
+	OrderID string, PackingTrack []TrackBlock, deliveredDate string) error {
 
 	order, err := s.QueryOrder(ctx, OrderID)
 
@@ -249,7 +256,7 @@ func (s *SmartContract) PackingOrder(ctx contractapi.TransactionContextInterface
 	}
 
 	order.Processing.Packing = "Completed"
-	order.Processing.PackingDate = PackingDate
+	order.Processing.PackingTrack = PackingTrack
 	order.Processing.Delivered = true
 	order.Processing.DeliveredDate = deliveredDate
 
