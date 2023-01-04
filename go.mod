@@ -1,6 +1,6 @@
 module github.com/hyperledger/fabric-samples/chaincode/chain-apparek
 
-go 1.19
+go 1.13
 
 require (
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect

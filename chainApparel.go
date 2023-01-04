@@ -32,18 +32,24 @@ type InfoBlock struct {
 	OrderDate   string `json:"orderDate"`
 	Phonenumber uint64 `json:"phonenumber"`
 }
-
-// Material Requirement Structure
-type RequirementBlock struct {
+type ManufacturerBlock struct {
 	Key   string `json:"Key"`
 	Value string `json:"Value"`
 }
 
+// Material Requirement Structure
+type RequirementBlock struct {
+	Key      string `json:"Key"`
+	Value    string `json:"Value"`
+	VendorId string `json:"VendorId"`
+}
+
 // Ordered Material Structure
 type MaterialDataBlock struct {
-	Key   string `json:"key"`
-	Value string `json:"Value"`
-	Date  string `json:"Date"`
+	Material          string `json:"Material"`
+	Quantity          string `json:"Quantity"`
+	OrderDate         string `json:"OrderDate"`
+	RequiredOrderDate string `json:"RequiredOrderDate"`
 }
 
 // Processing Structure
@@ -79,7 +85,7 @@ type Order struct {
 	Email               string              `json:"email"`
 	Id                  string              `json:"id"`
 	InProductionDate    string              `json:"inProductionDate"`
-	Manufacturer        string              `json:"manufacturer"`
+	Manufacturer        []ManufacturerBlock `json:"manufacturer"`
 	OrderId             string              `json:"orderId"`
 	OrderValue          uint                `json:"orderValue"`
 	Product             string              `json:"product"`
@@ -120,7 +126,7 @@ func (s *SmartContract) CreateOrder(ctx contractapi.TransactionContextInterface,
 	productQuantity uint,
 	productStyleNo string,
 	productUrl string,
-	manufacturer string,
+	manufacturer []ManufacturerBlock,
 	id string,
 	email string,
 	brandName string,
@@ -157,8 +163,17 @@ func (s *SmartContract) CreateOrder(ctx contractapi.TransactionContextInterface,
 		UserName:            userName,
 		MaterialRequirement: Materialrequirement,
 		OrderedMaterialData: []MaterialDataBlock{},
-		Processing:          ProcessingBlock{},
-		InProductionDate:    "",
+		Processing: ProcessingBlock{
+			Cutting:       "",
+			Stiching:      "",
+			Quality:       "",
+			Packing:       "",
+			CuttingTrack:  []TrackBlock{},
+			StichingTrack: []TrackBlock{},
+			QualityTrack:  []TrackBlock{},
+			PackingTrack:  []TrackBlock{},
+		},
+		InProductionDate: "",
 	}
 
 	orderAsBytes, _ := json.Marshal(order)
@@ -267,7 +282,7 @@ func (s *SmartContract) PackingOrder(ctx contractapi.TransactionContextInterface
 
 // OrderMaterialData Update order to the world state with given details
 func (s *SmartContract) OrderMaterialData(ctx contractapi.TransactionContextInterface,
-	OrderID string, MaterialData []MaterialDataBlock) error {
+	OrderID string, MaterialData MaterialDataBlock) error {
 
 	order, err := s.QueryOrder(ctx, OrderID)
 
@@ -275,7 +290,7 @@ func (s *SmartContract) OrderMaterialData(ctx contractapi.TransactionContextInte
 		return err
 	}
 
-	order.OrderedMaterialData = MaterialData
+	order.OrderedMaterialData = append(order.OrderedMaterialData, MaterialData)
 
 	orderAsBytes, _ := json.Marshal(order)
 
